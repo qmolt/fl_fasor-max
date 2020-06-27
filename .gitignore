@@ -1,0 +1,4 @@
+#vs files
+*.vcxproj.user
+x64
+.vs
