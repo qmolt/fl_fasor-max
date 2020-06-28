@@ -16,8 +16,8 @@ This project contains, in addition, a prebuilt external fl_fasor~.mxe64 and help
 # Versions History
 
 **v0.1**
--**Important**: fixes first point of the curve to be the correct value instead of zero
--**Important**: fadetime attribute now works properly
--Default curve is not weird anymore
--Attributes change in attrui when set by message
--***known bug***: attributes doesn't change when written in *attrui*, only changes when the number is changed by dragging the mouse ...don't ask me why
+- **Important**: fixes first point of the curve to be the correct value instead of zero
+- **Important**: fadetime attribute now works properly
+- Default curve is not weird anymore
+- Attributes change in attrui when set by message
+- ***known bug***: attributes doesn't change when written in *attrui*, only changes when the number is changed by dragging the mouse ...don't ask me why
