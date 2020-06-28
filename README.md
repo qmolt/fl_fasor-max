@@ -6,8 +6,8 @@ An audio external for Windows version of Max 8 (Max/MSP) that produces any wavet
 <img src="example/fasordemo.gif" width="400">
 
 To work properly, the format listing of the curve parameters needs to start on the first value of the curve you want to set, and needs to have 3 values for each point (y position, x difference, and curve). You can achieve this easily by changing a pair of attributes on the inspector of the *function* object: 
--The **Output Mode** attribute must be set to *List* (instead of *Normal*)
--The **Mode** attribute must be set to *Curve* (instead of Linear)
+- The **Output Mode** attribute must be set to *List* (instead of *Normal*)
+- The **Mode** attribute must be set to *Curve* (instead of Linear)
 
 This project contains, in addition, a prebuilt external fl_fasor~.mxe64 and help file fl_fasor~.maxhelp
 
