@@ -6,8 +6,8 @@ An audio external for Windows version of Max 8 (Max/MSP) that produces any wavet
 <img src="example/fasordemo.gif" width="400">
 
 To work properly, the format listing of the curve parameters needs to start on the first value of the curve you want to set, and needs to have 3 values for each point (y position, x difference, and curve). You can achieve this easily by changing a pair of attributes on the inspector of the *function* object: 
--The **Output Mode** attribute must be set to *List* (instead of *Normal*)
--The **Mode** attribute must be set to *Curve* (instead of Linear)
+- The **Output Mode** attribute must be set to *List* (instead of *Normal*)
+- The **Mode** attribute must be set to *Curve* (instead of Linear)
 
 This project contains, in addition, a prebuilt external fl_fasor~.mxe64 and help file fl_fasor~.maxhelp
 
@@ -20,4 +20,8 @@ This project contains, in addition, a prebuilt external fl_fasor~.mxe64 and help
 - **Important**: fadetime attribute now works properly
 - Default curve is not weird anymore
 - Attributes change in attrui when set by message
+<<<<<<< HEAD
 - ***known bug***: attributes doesn't change when written in *attrui*, only changes when the number is changed by dragging the mouse ...don't ask me why
+=======
+- ***known bug***: attributes doesn't change when written in *attrui*, only changes when the number is changed by dragging the mouse ...don't ask me why
+>>>>>>> e7efdf667c3b826c14e1b5ee7e84b476143d7382
