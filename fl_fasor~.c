@@ -1,6 +1,6 @@
 #include "fl_fasor~.h"
 
-void ext_main()
+void ext_main(void *r)
 {
 	//create class
 	fl_fasor_class = class_new("fl_fasor~", (method)fl_fasor_new, (method)fl_fasor_free, sizeof(t_fl_fasor), 0, A_GIMME, 0);

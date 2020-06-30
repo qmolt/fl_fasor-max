@@ -73,7 +73,7 @@ typedef struct _fl_fasor {
 } t_fl_fasor;
 
 /* arguments/inlets/outlets/vectors indexes */
-enum ARGUMENTS { A_TABLE_SIZE, A_CURVEFORM, A_FREQUENCY };
+enum ARGUMENTS { A_TABLE_SIZE, A_FREQUENCY };
 enum INLETS { I_FREQUENCY, I_PHASE, I_LISTACURVA, NUM_INLETS };
 enum OUTLETS { O_OUTPUT, NUM_OUTLETS };
 //enum DSP { PERFORM, OBJECT, FREQUENCY, OUTPUT, VECTOR_SIZE, NEXT };
