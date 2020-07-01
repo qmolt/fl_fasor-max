@@ -75,14 +75,17 @@ void *fl_fasor_new(t_symbol *s, short argc, t_atom *argv)
 
 	x->wavetable_bytes = x->table_size * sizeof(float);
 	x->wavetable = (float *)new_memory(x->wavetable_bytes);
+	if (x->wavetable == NULL) { object_error((t_object *)x, "no hay espacio de memoria para tabla"); return x; }
 	x->wavetable_old = (float *)new_memory(x->wavetable_bytes);
+	if (x->wavetable_old == NULL) { object_error((t_object *)x, "no hay espacio de memoria para tabla"); return x; }
+	for (int i = 0; i < x->table_size; i++) {
+		x->wavetable[i] = 0.;
+	}
 
 	x->n_puntos = N_PUNTOS_DEFAULT;
 	x->bytes_puntos_curva = MAX_PUNTOS_CURVA * 3 * sizeof(float);
 	x->puntos_curva = (float *)sysmem_newptr(x->bytes_puntos_curva);
-	if (x->puntos_curva == NULL) {
-		object_error((t_object *)x, "no hay espacio de memoria para puntos ventana");
-	}
+	if (x->puntos_curva == NULL) { object_error((t_object *)x, "no hay espacio de memoria para puntos curva"); return x; }
 	else {
 		x->puntos_curva[0] = 0.0;
 		x->puntos_curva[1] = 0.0;
@@ -158,7 +161,7 @@ void fl_fasor_curva_list(t_fl_fasor *x, t_symbol *s, short argc, t_atom *argv)
 			}
 		}
 
-		fl_fasor_build_wavetable(x);
+		if (x->wavetable != NULL && x->wavetable_old != NULL) { fl_fasor_build_wavetable(x); }
 	}
 }
 
@@ -217,11 +220,12 @@ void fl_fasor_build_wavetable(t_fl_fasor *x)
 	float *wavetable = x->wavetable;
 	float *wavetable_old = x->wavetable_old;
 
-	if (x->crossfade_in_progress) { return; }
+	if (x->crossfade_in_progress) { object_warn((t_object *)x, "xfade in progress"); return; }
 
 	for (int ii = 0; ii < table_size; ii++) {
 		wavetable_old[ii] = wavetable[ii];
 	}
+
 	x->dirty = 1;
 
 	/* Initialize crossfade and wavetable */
@@ -234,27 +238,8 @@ void fl_fasor_build_wavetable(t_fl_fasor *x)
 		x->crossfade_in_progress = 0;
 	}
 
-	/* Initialize (clear) wavetable with DC component */
-	for (int ii = 0; ii < table_size; ii++) {
-		wavetable[ii] = 0.5;
-	}
-
 	/* Build the wavetable */
 	fl_fasor_build_curveform(x);
-
-	/* //Normalize wavetable to a peak value of 1.0 
-	float max = 0.0;
-	for (int ii = 0; ii < table_size; ii++) {
-		if (max < fabs(wavetable[ii])) {
-			max = fabs(wavetable[ii]);
-		}
-	}
-	if (max != 0.0) {
-		float rescale = 1.0 / max;
-		for (int ii = 0; ii < table_size; ii++) {
-			wavetable[ii] *= rescale;
-		}
-	}*/
 
 	x->dirty = 0;
 	x->just_turned_on = 0;
@@ -406,7 +391,7 @@ void fl_fasor_perform64(t_fl_fasor *x, t_object *dsp64, double **inputs, long nu
 
 	while (n--)
 	{
-		//leer vectores audio si están conectados
+		//read audio vectors if connected
 		if (x->frequency_connected) { sample_increment = increment * (float)*freq_signal++; }
 		else { sample_increment = increment * frequency; }
 
@@ -416,7 +401,7 @@ void fl_fasor_perform64(t_fl_fasor *x, t_object *dsp64, double **inputs, long nu
 		while (phase >= table_size) { phase -= table_size; }
 		while (phase < 0) { phase += table_size; }
 
-		//interpolar samps tablas old y new
+		//interpolate samps tables old and new
 		iphase = (long)floor(phase);
 		interp = phase - iphase;
 
@@ -428,10 +413,10 @@ void fl_fasor_perform64(t_fl_fasor *x, t_object *dsp64, double **inputs, long nu
 		samp2 = wavetable[(iphase + 1) % table_size];
 		new_sample = samp1 + interp * (samp2 - samp1);
 
-		if (x->dirty) {		//creating new table
+		if (x->dirty) {		/* creating new table */
 			out_sample = old_sample;
 		}
-		else if (crossfade_countdown > 0) {		//fade between tables
+		else if (crossfade_countdown > 0) {		/* fade between tables */
 			fraction = (float)crossfade_countdown / (float)crossfade_samples;
 
 			if (crossfade_type == POWER_CROSSFADE) {
@@ -446,7 +431,7 @@ void fl_fasor_perform64(t_fl_fasor *x, t_object *dsp64, double **inputs, long nu
 			}
 			crossfade_countdown--;
 		}
-		else {		//just play
+		else {		/* just play */
 			out_sample = new_sample;
 		}
 
