@@ -45,13 +45,23 @@ void parse_float_arg(float *variable, float minimum_value, float default_value, 
 {
 	*variable = default_value;
 	if (argc > arg_index) { *variable = atom_getfloatarg(arg_index, argc, argv); }
-	*variable = min(maximum_value, max(minimum_value, *variable));
+#ifdef MAC_VERSION
+    *variable = MIN(maximum_value, MAX(minimum_value, *variable));
+#endif
+#ifdef WIN_VERSION
+    *variable = min(maximum_value, max(minimum_value, *variable));
+#endif
 }
 void parse_int_arg(long *variable, long minimum_value, long default_value, long maximum_value, int arg_index, short argc, t_atom *argv)
 {
 	*variable = default_value;
 	if (argc > arg_index) { *variable = (long)atom_getintarg(arg_index, argc, argv); }
-	*variable = min(maximum_value, max(minimum_value, *variable));
+#ifdef MAC_VERSION
+    *variable = MIN(maximum_value, MAX(minimum_value, *variable));
+#endif
+#ifdef WIN_VERSION
+    *variable = min(maximum_value, max(minimum_value, *variable));
+#endif
 
 }
 void parse_symbol_arg(t_symbol **variable, t_symbol *default_value, int arg_index, short argc, t_atom *argv)
@@ -125,12 +135,22 @@ void fl_fasor_float(t_fl_fasor *x, double farg)
 	long inlet = ((t_pxobject *)x)->z_in;
 	switch (inlet) {
 	case 0:
-		farg = min(MAXIMUM_FREQUENCY, max(MINIMUM_FREQUENCY, fabs(farg)));
+#ifdef MAC_VERSION
+        farg = MIN(MAXIMUM_FREQUENCY, MAX(MINIMUM_FREQUENCY, fabs(farg)));
+#endif
+#ifdef WIN_VERSION
+        farg = min(MAXIMUM_FREQUENCY, max(MINIMUM_FREQUENCY, fabs(farg)));
+#endif
 		x->a_frequency = x->frequency = (float)farg;
 		object_attr_touch((t_object *)x, gensym("frequency"));
 		break;
 	case 1:
-		farg = min(1.0, max(0.0, farg));
+#ifdef MAC_VERSION
+        farg = MIN(1.0, MAX(0.0, farg));
+#endif
+#ifdef WIN_VERSION
+        farg = min(1.0, max(0.0, farg));
+#endif
 		x->phase = (float)(farg * x->table_size);
 		break;
 	}
@@ -276,15 +296,24 @@ void fl_fasor_build_curveform(t_fl_fasor *x)
 			j = 0;
 			k++;
 		}
-		
-		x_i = (j / (float)max(segmento,1));
+#ifdef MAC_VERSION
+        x_i = (j / (float)MAX(segmento,1));
+#endif
+#ifdef WIN_VERSION
+        x_i = (j / (float)max(segmento,1));
+#endif
 		x->wavetable[i] = ((float)pow(x_i, curva))*(y_f - y_i) + y_i;
 	}
 }
 
 float parse_curve(float curva) 
-{	
-	curva = (float)min(CURVE_MAX, max(CURVE_MIN, curva));
+{
+#ifdef MAC_VERSION
+    curva = (float)MIN(CURVE_MAX, MAX(CURVE_MIN, curva));
+#endif
+#ifdef WIN_VERSION
+    curva = (float)min(CURVE_MAX, MAX(CURVE_MIN, curva));
+#endif
 	if (curva > 0.0) { return (float)(1.0 / (1.0 - curva)); }
 	else { return (float)(curva + 1.0); }
 }
@@ -293,8 +322,13 @@ void fl_fasor_fadetime(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv)
 {
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_FLOAT) { return; }
-	float crossfade_ms = (float)atom_getfloat(argv);	
-	x->a_crossfade_time = x->crossfade_time = (float)min(MAXIMUM_CROSSFADE, max(MINIMUM_CROSSFADE, crossfade_ms));
+	float crossfade_ms = (float)atom_getfloat(argv);
+#ifdef MAC_VERSION
+    x->a_crossfade_time = x->crossfade_time = (float)MIN(MAXIMUM_CROSSFADE, MAX(MINIMUM_CROSSFADE, crossfade_ms));
+#endif
+#ifdef WIN_VERSION
+    x->a_crossfade_time = x->crossfade_time = (float)min(MAXIMUM_CROSSFADE, MAX(MINIMUM_CROSSFADE, crossfade_ms));
+#endif
 	x->crossfade_samples = (long)(x->crossfade_time * x->fs / 1000.0);
 	object_attr_touch((t_object *)x, gensym("fadetime"));
 }
@@ -304,7 +338,12 @@ void fl_fasor_fadetype(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv)
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_LONG) { return; }
 	float crossfade_type = (short)atom_getfloat(argv);
-	x->a_crossfade_type = x->crossfade_type = (short)min(POWER_CROSSFADE, max(NO_CROSSFADE, crossfade_type));
+#ifdef MAC_VERSION
+    x->a_crossfade_type = x->crossfade_type = (short)MIN(POWER_CROSSFADE, MAX(NO_CROSSFADE, crossfade_type));
+#endif
+#ifdef WIN_VERSION
+    x->a_crossfade_type = x->crossfade_type = (short)min(POWER_CROSSFADE, MAX(NO_CROSSFADE, crossfade_type));
+#endif
 	object_attr_touch((t_object *)x, gensym("fadetype"));
 }
 
