@@ -106,8 +106,6 @@ void fl_fasor_fadetime(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv);
 void fl_fasor_fadetype(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv);
 
 	/* memory stuff */
-void *new_memory(long nbytes);
-void free_memory(void *ptr, long nbytes);
 void fl_fasor_free(t_fl_fasor *x);
 
 	/* audio stuff */

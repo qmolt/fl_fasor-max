@@ -1,9 +1,9 @@
-#include "fl_fasor~.h"
+#include "flfasor~.h"
 
 void ext_main(void *r)
 {
 	//create class
-	fl_fasor_class = class_new("fl_fasor~", (method)fl_fasor_new, (method)fl_fasor_free, sizeof(t_fl_fasor), 0, A_GIMME, 0);
+	fl_fasor_class = class_new("flfasor~", (method)fl_fasor_new, (method)fl_fasor_free, sizeof(t_fl_fasor), 0, A_GIMME, 0);
 
 	//methods
 	class_addmethod(fl_fasor_class, (method)fl_fasor_dsp64, "dsp64", A_CANT, 0);
@@ -45,24 +45,13 @@ void parse_float_arg(float *variable, float minimum_value, float default_value, 
 {
 	*variable = default_value;
 	if (argc > arg_index) { *variable = atom_getfloatarg(arg_index, argc, argv); }
-#ifdef MAC_VERSION
     *variable = MIN(maximum_value, MAX(minimum_value, *variable));
-#endif
-#ifdef WIN_VERSION
-    *variable = min(maximum_value, max(minimum_value, *variable));
-#endif
 }
 void parse_int_arg(long *variable, long minimum_value, long default_value, long maximum_value, int arg_index, short argc, t_atom *argv)
 {
 	*variable = default_value;
 	if (argc > arg_index) { *variable = (long)atom_getintarg(arg_index, argc, argv); }
-#ifdef MAC_VERSION
     *variable = MIN(maximum_value, MAX(minimum_value, *variable));
-#endif
-#ifdef WIN_VERSION
-    *variable = min(maximum_value, max(minimum_value, *variable));
-#endif
-
 }
 void parse_symbol_arg(t_symbol **variable, t_symbol *default_value, int arg_index, short argc, t_atom *argv)
 {
@@ -84,10 +73,10 @@ void *fl_fasor_new(t_symbol *s, short argc, t_atom *argv)
 	parse_float_arg(&x->frequency, MINIMUM_FREQUENCY, DEFAULT_FREQUENCY, MAXIMUM_FREQUENCY, A_FREQUENCY, argc, argv);
 
 	x->wavetable_bytes = x->table_size * sizeof(float);
-	x->wavetable = (float *)new_memory(x->wavetable_bytes);
-	if (x->wavetable == NULL) { object_error((t_object *)x, "no hay espacio de memoria para tabla"); return x; }
-	x->wavetable_old = (float *)new_memory(x->wavetable_bytes);
-	if (x->wavetable_old == NULL) { object_error((t_object *)x, "no hay espacio de memoria para tabla"); return x; }
+	x->wavetable = (float *)sysmem_newptr(x->wavetable_bytes);
+	if (x->wavetable == NULL) { object_error((t_object *)x, "out of memory: no space for wavetable"); return x; }
+	x->wavetable_old = (float *)sysmem_newptr(x->wavetable_bytes);
+	if (x->wavetable_old == NULL) { object_error((t_object *)x, "out of memory: no space for wavetable"); return x; }
 	for (int i = 0; i < x->table_size; i++) {
 		x->wavetable[i] = 0.;
 	}
@@ -95,7 +84,7 @@ void *fl_fasor_new(t_symbol *s, short argc, t_atom *argv)
 	x->n_puntos = N_PUNTOS_DEFAULT;
 	x->bytes_puntos_curva = MAX_PUNTOS_CURVA * 3 * sizeof(float);
 	x->puntos_curva = (float *)sysmem_newptr(x->bytes_puntos_curva);
-	if (x->puntos_curva == NULL) { object_error((t_object *)x, "no hay espacio de memoria para puntos curva"); return x; }
+	if (x->puntos_curva == NULL) { object_error((t_object *)x, "out of memory: no space for curve"); return x; }
 	else {
 		x->puntos_curva[0] = 0.0;
 		x->puntos_curva[1] = 0.0;
@@ -135,22 +124,12 @@ void fl_fasor_float(t_fl_fasor *x, double farg)
 	long inlet = ((t_pxobject *)x)->z_in;
 	switch (inlet) {
 	case 0:
-#ifdef MAC_VERSION
         farg = MIN(MAXIMUM_FREQUENCY, MAX(MINIMUM_FREQUENCY, fabs(farg)));
-#endif
-#ifdef WIN_VERSION
-        farg = min(MAXIMUM_FREQUENCY, max(MINIMUM_FREQUENCY, fabs(farg)));
-#endif
 		x->a_frequency = x->frequency = (float)farg;
 		object_attr_touch((t_object *)x, gensym("frequency"));
 		break;
 	case 1:
-#ifdef MAC_VERSION
         farg = MIN(1.0, MAX(0.0, farg));
-#endif
-#ifdef WIN_VERSION
-        farg = min(1.0, max(0.0, farg));
-#endif
 		x->phase = (float)(farg * x->table_size);
 		break;
 	}
@@ -158,15 +137,9 @@ void fl_fasor_float(t_fl_fasor *x, double farg)
 
 void fl_fasor_curva_list(t_fl_fasor *x, t_symbol *s, short argc, t_atom *argv)
 {
-	if (argc % 3 != 0) {
-		object_error((t_object *)x, "multiplo de 3");
-		return;
-	}
+	if (argc % 3 != 0) { object_error((t_object *)x, "number of args must be a multiple of 3"); return; }
 
-	if (argc > MAX_PUNTOS_CURVA * 3) {
-		object_error((t_object *)x, "muchos puntos");
-		return;
-	}
+	if (argc > MAX_PUNTOS_CURVA * 3) { object_error((t_object *)x, "too many points"); return; }
 
 	if (!x->dirty) {
 		t_atom *aptr = argv;
@@ -189,17 +162,17 @@ void fl_fasor_assist(t_fl_fasor *x, void *b, long msg, long arg, char *dst)
 {
 	if (msg == ASSIST_INLET) {
 		switch (arg) {
-		case I_FREQUENCY: sprintf(dst, "(signal/float) Frequency");
+		case I_FREQUENCY: sprintf(dst, "(sig~/float) Frequency");
 			break;
-		case I_PHASE: sprintf(dst, "(signal/float) Phase");
+		case I_PHASE: sprintf(dst, "(sig~/float) Phase");
 			break;
-		case I_LISTACURVA: sprintf(dst, "(list) lista formato curva (y dx c)");
+		case I_LISTACURVA: sprintf(dst, "(list) Curve list format (y Δx c)");
 			break;
 		}
 	}
 	else if (msg == ASSIST_OUTLET) {
 		switch (arg) {
-		case O_OUTPUT: sprintf(dst, "(signal) Output zero to one");
+		case O_OUTPUT: sprintf(dst, "(sig~) Output");
 			break;
 		}
 	}
@@ -296,24 +269,14 @@ void fl_fasor_build_curveform(t_fl_fasor *x)
 			j = 0;
 			k++;
 		}
-#ifdef MAC_VERSION
         x_i = (j / (float)MAX(segmento,1));
-#endif
-#ifdef WIN_VERSION
-        x_i = (j / (float)max(segmento,1));
-#endif
 		x->wavetable[i] = ((float)pow(x_i, curva))*(y_f - y_i) + y_i;
 	}
 }
 
 float parse_curve(float curva) 
 {
-#ifdef MAC_VERSION
     curva = (float)MIN(CURVE_MAX, MAX(CURVE_MIN, curva));
-#endif
-#ifdef WIN_VERSION
-    curva = (float)min(CURVE_MAX, MAX(CURVE_MIN, curva));
-#endif
 	if (curva > 0.0) { return (float)(1.0 / (1.0 - curva)); }
 	else { return (float)(curva + 1.0); }
 }
@@ -323,12 +286,7 @@ void fl_fasor_fadetime(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv)
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_FLOAT) { return; }
 	float crossfade_ms = (float)atom_getfloat(argv);
-#ifdef MAC_VERSION
     x->a_crossfade_time = x->crossfade_time = (float)MIN(MAXIMUM_CROSSFADE, MAX(MINIMUM_CROSSFADE, crossfade_ms));
-#endif
-#ifdef WIN_VERSION
-    x->a_crossfade_time = x->crossfade_time = (float)min(MAXIMUM_CROSSFADE, MAX(MINIMUM_CROSSFADE, crossfade_ms));
-#endif
 	x->crossfade_samples = (long)(x->crossfade_time * x->fs / 1000.0);
 	object_attr_touch((t_object *)x, gensym("fadetime"));
 }
@@ -338,39 +296,19 @@ void fl_fasor_fadetype(t_fl_fasor *x, t_symbol *msg, short argc, t_atom *argv)
 	if (argc > 1) { return; }
 	if (atom_gettype(argv) != A_LONG) { return; }
 	float crossfade_type = (short)atom_getfloat(argv);
-#ifdef MAC_VERSION
     x->a_crossfade_type = x->crossfade_type = (short)MIN(POWER_CROSSFADE, MAX(NO_CROSSFADE, crossfade_type));
-#endif
-#ifdef WIN_VERSION
-    x->a_crossfade_type = x->crossfade_type = (short)min(POWER_CROSSFADE, MAX(NO_CROSSFADE, crossfade_type));
-#endif
 	object_attr_touch((t_object *)x, gensym("fadetype"));
 }
 
 /* memory stuff --------------------------------------------------------------------- */
-void *new_memory(long nbytes)
-{
-	t_ptr pointer = sysmem_newptr(nbytes);
-	if (pointer == NULL) {
-		object_error(NULL, "Cannot allocate memory for this object");
-		return NULL;
-	}
-	return pointer;
-}
-
-void free_memory(void *ptr, long nbytes)
-{
-	sysmem_freeptr(ptr);
-}
-
 void fl_fasor_free(t_fl_fasor *x)
 {
 	/* Remove the object from the DSP chain */
 	dsp_free((t_pxobject *)x);
 
 	/* Free allocated dynamic memory */
-	free_memory(x->wavetable, x->wavetable_bytes);
-	free_memory(x->wavetable_old, x->wavetable_bytes);
+	sysmem_freeptr(x->wavetable); //x->wavetable_bytes
+	sysmem_freeptr(x->wavetable_old); //x->wavetable_bytes
 }
 
 /* audio stuff -------------------------------------------------------------------------------*/
