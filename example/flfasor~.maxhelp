@@ -271,8 +271,8 @@
 					"numinlets" : 3,
 					"numoutlets" : 1,
 					"outlettype" : [ "signal" ],
-					"patching_rect" : [ 76.0, 128.0, 55.0, 22.0 ],
-					"text" : "fl_fasor~"
+					"patching_rect" : [ 76.0, 128.0, 48.0, 22.0 ],
+					"text" : "flfasor~"
 				}
 
 			}
@@ -412,7 +412,7 @@
 			}
  ],
 		"dependency_cache" : [ 			{
-				"name" : "fl_fasor~.mxe64",
+				"name" : "flfasor~.mxe64",
 				"type" : "mx64"
 			}
  ],
